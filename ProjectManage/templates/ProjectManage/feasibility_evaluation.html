@@ -1,0 +1,29 @@
+{% load staticfiles %}
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title> BUI 管理系统</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link href="{% static 'ProjectManage/css/demo.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'ProjectManage/css/dpl-min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'ProjectManage/css/bui-min.css' %}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+<div class="demo-content">
+    <div class="row">
+        <div class="doc-content span24">
+            <div class="row show-grid">
+                <h1 class="span24">可行性分析</h1>
+            </div>
+            <form method="post">{% csrf_token %}
+                {{ form.as_p }}
+                <div class="row show-grid">
+                    <input class="span24" type="submit" value="提交"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

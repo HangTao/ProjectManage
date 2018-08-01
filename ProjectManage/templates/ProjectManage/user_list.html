@@ -1,0 +1,152 @@
+{% extends "ProjectManage/base.html" %}
+{% block mainbody %}
+    {#<div class="container">#}
+    <div class="search-grid-container">
+        <div id="grid"></div>
+    </div>
+    <!-- 初始隐藏 dialog内容 -->
+
+    <div id="content" class="hide">
+        <form class="form-horizontal">
+            <div class="row">
+                <div class="control-group span8">
+                    <label class="control-label"><s>*</s>登陆名：</label>
+                    <div class="controls">
+                        <input name="l_name" type="text" data-rules="{required:true}" class="input-normal control-text">
+                    </div>
+                </div>
+                <div class="control-group span8">
+                    <label class="control-label"><s>*</s>密 码：</label>
+                    <div class="controls">
+                        <input name="l_password" type="text" data-rules="{required:true}"
+                               class="input-normal control-text">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}
+{% block addscript %}
+    <script type="text/javascript">
+        BUI.use(['bui/grid', 'common/search', 'bui/uploader', 'common/page'], function (Grid, Search, Uploader,) {
+            var Grid = Grid
+            var isAddRemote = false
+            var enumObj = {true: "男", false: "女"},
+                columns = [
+                    {
+                        title: '学生编号', dataIndex: 'id', width: 80, renderer: function (v) {
+                            return Search.createLink({
+                                id: 'detail' + v,
+                                title: '学生信息',
+                                text: v,
+                                href: 'detail/example.html'
+                            });
+                        }
+                    },
+                    {title: '学生姓名', dataIndex: 'u_name', width: 100},
+                    {title: '生日', dataIndex: 'birthday', width: 100, renderer: BUI.Grid.Format.dateRenderer},
+                    {title: '学生性别', dataIndex: 'u_sex', width: 60, renderer: BUI.Grid.Format.enumRenderer(enumObj)},
+                    {title: '用户电话', dataIndex: 'u_phone', width: 100},
+                    {title: '学生家庭住址', dataIndex: 'address', width: 300},
+                    {
+                        title: '操作', dataIndex: '', width: 200, renderer: function (value, obj) {
+                            var editStr = Search.createLink({ //链接使用 此方式
+                                    id: 'edit' + obj.id,
+                                    title: '项目可行性分析',
+                                    text: '编辑',
+                                    href: '{% url "PM:feasibility-evaluation"%}'
+                                }),
+                                delStr = '<span class="grid-command btn-del" title="删除学生信息">删除</span>';//页面操作不需要使用Search.createLink
+                            return editStr + delStr;
+                        }
+                    }
+                ],
+                store = Search.createStore("{% url 'PM:get-user-list' %}"),
+                isAddRemote = false,
+                editing = new Grid.Plugins.DialogEditing({
+                    contentId: 'content', //设置隐藏的Dialog内容
+                    triggerCls: 'btn-edit', //触发显示Dialog的样式
+                    editor: {
+                        title: '自定义',
+                        width: 600,
+                        listeners: {
+                            show: function () {
+                            }
+                        }
+                    }
+                }),
+                gridCfg = Search.createGridCfg(columns, {
+                    tbar: {
+                        items: [
+                            {
+                                text: '<i class="icon-plus"></i>新建',
+                                btnCls: 'button button-small',
+                                listeners: {'click': addFunction}
+                            },
+                            {
+                                text: '<i class="icon-edit"></i>编辑',
+                                btnCls: 'button button-small',
+                                handler: function () {
+                                    alert('编辑');
+                                }
+                            },
+                            {text: '<i class="icon-remove"></i>删除', btnCls: 'button button-small', handler: delFunction}
+                        ]
+                    },
+                    plugins: [editing,BUI.Grid.Plugins.CheckSelection] // 插件形式引入多选表格
+                });
+
+            var search = new Search({
+                    store: store,
+                    gridCfg: gridCfg
+                }),
+                grid = search.get('grid');
+
+            function addFunction() {
+                var newData = {b: 0};
+                editing.add(newData, 'a'); //添加记录后，直接编辑
+            }
+
+            //删除操作
+            function delFunction() {
+                var selections = grid.getSelection();
+                delItems(selections);
+            }
+
+            function delItems(items) {
+                var ids = [];
+                BUI.each(items, function (item) {
+                    ids.push(item.id);
+                });
+
+                if (ids.length) {
+                    BUI.Message.Confirm('确认要删除选中的记录么？', function () {
+                        $.ajax({
+                            url: "{% url 'PM:get_user_project_list' %}",
+                            dataType: 'json',
+                            data: {ids: ids},
+                            success: function (data) {
+                                if (data.success) { //删除成功
+                                    search.load();
+                                } else { //删除失败
+                                    BUI.Message.Alert('删除失败！');
+                                }
+                            }
+                        });
+                    }, 'question');
+                }
+            }
+
+            //监听事件，删除一条记录
+            grid.on('cellclick', function (ev) {
+                var sender = $(ev.domTarget); //点击的Dom
+                if (sender.hasClass('btn-del')) {
+                    var record = ev.record;
+                    delItems([record]);
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

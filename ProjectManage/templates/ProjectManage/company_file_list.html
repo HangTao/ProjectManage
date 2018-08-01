@@ -1,0 +1,8 @@
+<h1>公司文件列表</h1>
+<ul>
+{% for file in object_list %}
+    <li>{{ file.f_name}} - {{ file.f_manager.u_name }} - {{ file.pf_path }}</li>
+{% empty %}
+    <li>No articles yet.</li>
+{% endfor %}
+</ul>

@@ -1,0 +1,36 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'ProjectManage/css/style.css' %}"/>
+<form name="form1" method="post" action="{% url 'PM:login' %}" autocomplete="off">
+    {% csrf_token %}
+    <div id="center">
+
+
+        <div id="form">
+
+            <div class="inputer">
+                <div class="user">
+                    <input type="text" class="text" name="username" maxlength="20" onmouseover="this.focus()"
+                           onfocus="this.select()" value="{{ username }}">
+                </div>
+                <div class="pwd">
+                    <input type="password" class="text" name="password" onmouseover="this.focus()"
+                           onfocus="this.select()" value="{{ password }}">
+                </div>
+                <div class="btn">
+                    <input onmouseenter="addClass(this,'submit-hover');" onmouseout="removeClass(this,'submit-hover');"
+                           type="submit" class="submit" title="登录" value="">
+                </div>
+                {% if errorMessage %}
+                    <p class="error" style="color: red">{{ errorMessage }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="clear"></div>
+        <div class="bg-item-1"></div>
+        <div class="bg-item-2"></div>
+    </div>
+</form>
+
+<script type="text/javascript">
+
+</script>

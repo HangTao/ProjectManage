@@ -1,0 +1,203 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link href="{% static 'ProjectManage/css/dpl-min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'ProjectManage/css/bui-min.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'ProjectManage/css/main-min.css' %}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+{#<div class="container">#}
+<div class="search-grid-container">
+    <div id="grid"></div>
+</div>
+{#</div>#}
+<!-- 初始隐藏 dialog内容 -->
+<div id="content" class="hide">
+    <form class="form-horizontal">
+        <div class="row">
+            <div class="control-group span8">
+                <label class="control-label"><s>*</s>项目名称：</label>
+                <div class="controls">
+                    <input name="a" type="text" data-rules="{required:true}" class="input-normal control-text">
+                </div>
+            </div>
+            <div class="control-group span8">
+                <label class="control-label"><s>*</s>项目来源：</label>
+                <div class="controls">
+                    <select name="d" class="input-normal">
+                        <option value="">招标项目</option>
+                        <option value="1">扩展项目</option>
+                        <option value="2">关系项目</option>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group span8">
+                <label class="control-label"><s>*</s>项目类型：</label>
+                <div class="controls">
+                    <select name="d" class="input-normal">
+                        <option value="">定制开发</option>
+                        <option value="1">系统维保</option>
+                        <option value="2">数据库维保</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="control-group span15">
+                <label class="control-label">简短描述：</label>
+                <div class="controls control-row4">
+                    <textarea name="f" class="input-large" type="text"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="control-group span8 ">
+                <label class="control-label">失效日期：</label>
+                <div id="range" class="controls">
+                    <input name="c" class="calendar" type="text">
+                </div>
+            </div>
+            <div class="control-group span8">
+                <label class="control-label">相关文件：</label>
+                <div class="controls">
+                    <div id="J_Uploader">
+                </div>
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+</div>
+<script type="text/javascript" src="{% static 'ProjectManage/js/jquery-1.8.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'ProjectManage/js/bui.js' %}"></script>
+<script type="text/javascript" src="{% static 'ProjectManage/js/config.js' %}"></script>
+<script type="text/javascript">
+    BUI.use(['bui/grid','common/search', 'bui/uploader','common/page'], function (Grid,Search,Uploader) {
+        var Grid = Grid
+        var isAddRemote = false
+        var enumObj = {"1": "男", "0": "女"},
+            columns = [
+                {
+                    title: '学生编号', dataIndex: 'id', width: 80, renderer: function (v) {
+                        return Search.createLink({
+                            id: 'detail' + v,
+                            title: '学生信息',
+                            text: v,
+                            href: 'detail/example.html'
+                        });
+                    }
+                },
+                {title: '学生姓名', dataIndex: 'name', width: 100},
+                {title: '生日', dataIndex: 'birthday', width: 100, renderer: BUI.Grid.Format.dateRenderer},
+                {title: '学生性别', dataIndex: 'sex', width: 60, renderer: BUI.Grid.Format.enumRenderer(enumObj)},
+                {title: '学生班级', dataIndex: 'grade', width: 100},
+                {title: '学生家庭住址', dataIndex: 'address', width: 300},
+                {
+                    title: '操作', dataIndex: '', width: 200, renderer: function (value, obj) {
+                        var editStr = Search.createLink({ //链接使用 此方式
+                                id: 'edit' + obj.id,
+                                title: '项目可行性分析',
+                                text: '编辑',
+                                href: '{% url "PM:feasibility-evaluation"%}'
+                            }),
+                            delStr = '<span class="grid-command btn-del" title="删除学生信息">删除</span>';//页面操作不需要使用Search.createLink
+                        return editStr + delStr;
+                    }
+                }
+            ],
+            store = Search.createStore("{% url 'PM:get_user_project_list' %}"),
+            editing = new Grid.Plugins.DialogEditing({
+                contentId: 'content', //设置隐藏的Dialog内容
+                triggerCls: 'btn-edit', //触发显示Dialog的样式
+                editor: {
+                    title: '自定义',
+                    width: 600,
+                    listeners: {
+                        show: function () {
+                            var form = this.get('form');
+                            //TO DO
+                        }
+                    }
+                }
+            }),
+            gridCfg = Search.createGridCfg(columns, {
+                tbar: {
+                    items: [
+                        {
+                            text: '<i class="icon-plus"></i>新建',
+                            btnCls: 'button button-small',
+                            listeners: {'click': addFunction}
+                        },
+                        {
+                            text: '<i class="icon-edit"></i>编辑', btnCls: 'button button-small', handler: function () {
+                                alert('编辑');
+                            }
+                        },
+                        {text: '<i class="icon-remove"></i>删除', btnCls: 'button button-small', handler: delFunction}
+                    ]
+                },
+                plugins: [editing, BUI.Grid.Plugins.CheckSelection] // 插件形式引入多选表格
+            });
+
+        var search = new Search({
+                store: store,
+                gridCfg: gridCfg
+            }),
+            grid = search.get('grid');
+
+        function addFunction() {
+            var newData = {b: 0};
+            editing.add(newData, 'a'); //添加记录后，直接编辑
+        }
+
+        //删除操作
+        function delFunction() {
+            var selections = grid.getSelection();
+            delItems(selections);
+        }
+
+        function delItems(items) {
+            var ids = [];
+            BUI.each(items, function (item) {
+                ids.push(item.id);
+            });
+
+            if (ids.length) {
+                BUI.Message.Confirm('确认要删除选中的记录么？', function () {
+                    $.ajax({
+                        url: "{% url 'PM:get_user_project_list' %}",
+                        dataType: 'json',
+                        data: {ids: ids},
+                        success: function (data) {
+                            if (data.success) { //删除成功
+                                search.load();
+                            } else { //删除失败
+                                BUI.Message.Alert('删除失败！');
+                            }
+                        }
+                    });
+                }, 'question');
+            }
+        }
+
+        //监听事件，删除一条记录
+        grid.on('cellclick', function (ev) {
+            var sender = $(ev.domTarget); //点击的Dom
+            if (sender.hasClass('btn-del')) {
+                var record = ev.record;
+                delItems([record]);
+            }
+        });
+
+        var uploader = new Uploader.Uploader({
+        render: '#J_Uploader',
+        url: '../../../test/upload/upload.php'
+      }).render();
+    });
+</script>
+</body>
+</html>
